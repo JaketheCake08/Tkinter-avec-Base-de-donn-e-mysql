@@ -1,0 +1,213 @@
+# Tkinter-avec-Base-de-donn-e-mysql
+
+###########################PYTHON SUR LINUX###########################
+sudo apt update
+
+sudo apt install build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev libsqlite3-dev wget libbz2-dev
+
+wget https://www.python.org/ftp/python/3.8.0/Python-3.8.0.tgz
+
+tar -xf Python-3.8.0.tgz
+
+cd Python-3.8.0
+./configure --enable-optimizations
+
+make -j 8
+
+sudo make altinstall
+
+###########################MODULE TKinter###########################
+sudo apt-get update
+sudo apt-get install python3-tk
+
+###########################SERVEUR Mysql###########################
+#Mettre à jour apt
+sudo apt update
+
+#Installation de mysql-server
+sudo apt install mysql-server
+
+#Installation de pip
+sudo apt-get install python3-pip
+
+#Utiliser pip pour installer MySQL Connector de python
+pip install mysql-connector-python
+
+#############################PARAMÈTRER USER/PASSWORD SUR Mysql
+https://devanswers.co/how-to-reset-mysql-root-password-ubuntu/#4-test-new-root-password
+
+###########################CRÉATION BASE DE DONNEES MYSQL AVEC 2 FICHIERS PYTHON###########################
+#base de données = "tkinterdb1"
+sudo apt-get install mysql.connector
+
+###########################Création fichier bdpython.py
+**DÉBUTFICHIERPYTHON**
+#!/usr/bin/python3
+
+import mysql.connector
+
+mydb = mysql.connector.connect(
+host="localhost",
+user="root",
+password = "root1234"
+)
+mycursor = mydb.cursor()
+mycursor.execute("CREATE DATABASE tkinterdb1")
+**FINFICHIERPYTHON**
+
+#Pour executer un script en ligne de commmande
+which python dans la ligne de commande et copier/coller le chemin
+#Rendre le fichier executable
+chmod +x <filename>.py
+
+Python 2: python <filename>.py
+Python 3: python3 <filename>.py
+
+#Vérifier si la base de données a été crée
+sudo mysql -uroot -p
+my sql> show databases;
+
+###########################Création fichier python table.py
+
+**DÉBUTFICHIERPYTHON**
+#!/usr/bin/python3
+
+import mysql.connector
+
+mydb = mysql.connector.connect(
+host="localhost",
+database="tkinterdb1",
+user="root",
+password = "root1234"
+)
+mycursor = mydb.cursor()
+mycursor.execute("CREATE TABLE etudiant(id INT AUTO_INCREMENT PRIMARY KEY, nom VARCHAR(30),prenom VARCHAR(30),matricule VARCHAR(12),matiere VARCHAR(50),note VARCHAR(10))")
+**FINFICHIERPYTHON**
+
+sudo mysql -uroot -p
+my sql> use tkinterdb1
+my sql> select * from etudiant
+###########################INTERFACE GRAPHIQUE AVEC TKINTER###########################
+###########################CRÉATION FICHIER PYTHON tkinterdb1.py
+**DÉBUTFICHIERPYTHON**
+#!/usr/bin/python3
+
+from tkinter import *
+import mysql.connector
+ 
+#Creation de la fenetre
+fenetre = Tk()
+fenetre.title("Ajout d'etudiant dans une base de donnees mysql avec TKinter")
+fenetre.geometry("840x800")
+
+def afficher():
+    #labels entree/sortie
+    global entreePrenom
+    global entreeNom
+    global entreeMatricule
+    global entreeMatiere
+    global entreeNote
+    
+    labelUn = Label (fenetre,text="Votre prenom:")
+    labelUn.grid(row=1,column=1,sticky="E",padx=10)
+    entreePrenom = Entry(fenetre)
+    entreePrenom.grid(row=1,column=2)
+
+    labelDeux = Label (fenetre, text="votre nom :")
+    labelDeux.grid (row = 2, column = 1, sticky = "E", padx = 10)
+    entreeNom = Entry (fenetre)
+    entreeNom.grid (row = 2, column = 2)
+    
+    labelTrois = Label (fenetre, text="votre matricule:")
+    labelTrois.grid (row = 3,column = 1, sticky = "E", padx = 10)
+    entreeMatricule = Entry (fenetre)
+    entreeMatricule.grid (row = 3, column = 2)
+    
+    labelQuatre = Label (fenetre, text="Donnez une matiere:")
+    labelQuatre.grid (row = 4,column = 1, sticky = "E", padx = 10)
+    entreeMatiere = Entry (fenetre)
+    entreeMatiere.grid (row = 4, column = 2)
+    
+    labelCinq = Label (fenetre, text="Donnez une note SVP:")
+    labelCinq.grid (row = 5,column = 1, sticky = "E", padx = 10)
+    entreeNote = Entry (fenetre)
+    entreeNote.grid (row = 5, column = 2)
+    
+#Connecteur et requete pour inserer un etudiant sur mysql dans la table etudiant
+def ajouter(x):
+    fenetre1 = Tk()
+    fenetre1.title("Ajouter un etudiant")
+    fenetre1.geometry("400x200")
+    conn = mysql.connector.connect(
+    host = "localhost",
+    user = "root",
+    password = "root1234",
+    database = "tkinterdb1")
+    if conn.is_connected():
+   	 print('Connexion etablie')
+   	 entreePrenom.get()
+   	 entreeNom.get()
+   	 entreeMatricule.get()
+   	 entreeMatiere.get()
+   	 entreeNote.get()
+   	 req = "INSERT INTO etudiant (nom, prenom, matricule, matiere, note) VALUES (%s,%s,%s,%s,%s)"
+   	 cursor = conn.cursor()
+   	 cursor.execute(req,(entreePrenom.get(), entreeNom.get(), entreeMatricule.get(), entreeMatiere.get(), entreeNote.get()))
+   	 conn.commit()
+   	 print("Donnees envoyees!")
+    conn.close()
+
+#C'EST ICI QUE L'ON APPELLE LA FONCTION AJOUTER AVEC UN BOUTON
+boutonAjouter = Button (fenetre1, text = "Ajouter a la base de donnees",bg = "dark green", command=ajouter)
+boutonAjouter.place(x=30,y=200)
+
+#Creation de la barre de menu    
+menubar = Menu(fenetre)
+
+#On ajoute ce qu'il va avoir sous l'onglet Ajouter
+#C'EST ICI QUE L'ON APPELLE LA FONCTION AFFICHER
+menu1 = Menu(menubar, tearoff=0)
+menu1.add_command(label="Ajouter un etudiant", command=afficher)
+menu1.add_command(label="Quitter",command=fenetre.quit)
+#On ajoute l'onglet Ajouter
+menubar.add_cascade(label="Ajouter",menu=menu1)
+
+#La fonction selectionner a pour but d'afficher les infos selon le matricule
+def selectionner():
+    if(entreeMatricule.get()==""):
+   	 MessageBox.showinfo("afficher les champs")
+    else:
+   	 conn = mysql.connector.connect(host="localhost", user = "root",
+    password = "root1234",
+    database = "tkinterdb1")
+   	 cursor = conn.cursor()
+   	 cursor.execute("select * from etudiant where matricule = '" + entreeMatricule.get()+"'")
+   	 rows = cursor.fetchall()
+   	 for row in rows:
+   		 entreePrenom.insert(0,row[1])
+   		 entreeNom.insert(0,row[2])
+   		 entreeMatiere.insert(0,row[4])
+   		 entreeNote.insert(0,row[5])    
+   	 conn.close()
+  
+#C'EST ICI QUE L'ON APPELLE LA FONCTION SELECTIONNER AVEC UN BOUTON  
+boutonSelectionner = Button(fenetre,text = "Selectionner",bg = "blue", command=selectionner)
+boutonSelectionner.place(x=30,y=240)
+
+
+#liste = Listbox(fenetre)
+#liste.place(x=540,y=32)    
+
+fenetre.config(menu=menubar)
+fenetre.mainloop()
+
+**FINFICHIERPYTHON**
+
+###########################TEST###########################
+python3 tkinterdb1.py
+
+#Cliquer sur ajouter, la fenetre change, entrer les infos et cliquer sur ajouter, regarder dans le terminal
+#pour voir Connexion établie et Données envoyées!
+
+#Entrez un numero de matricule qui existe dans votre base de données dans le champ matricule et
+#cliquez sur Selectionner 
